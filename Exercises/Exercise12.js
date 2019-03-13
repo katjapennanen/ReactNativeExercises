@@ -1,7 +1,7 @@
 import { SQLite } from "expo";
-
 import React, { Component } from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, TextInput, Button } from "react-native";
+import styles from "./Styles/styles";
 
 const db = SQLite.openDatabase("coursedb.db");
 
@@ -9,65 +9,91 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      credit: "",
-      title: "",
-      courses: []
+      product: "",
+      amount: "",
+      shoppingList: []
     };
   }
 
   componentDidMount() {
     db.transaction(tx => {
       tx.executeSql(
-        "create table if not exists course (id integer primary key not null, credits int, title text"
+        "create table if not exists shopping_list (id integer primary key not null, product text, amount text);"
       );
     });
+    this.updateList();
   }
 
   saveItem = () => {
-      db.transaction( tx => {
-          tx.executeSql('insert into course (credits, title) values (?, ?))',
-          [parseInt(this.state.credit), this.state.title]);
-      }, null, this.updateList)
-  }
-
-  updateList = (id) => {
-    db.transaction(tx => {
-        tx.executeSql('select * from course', [], (_, {rows}) => 
-        this.setState({courses: rows._array})
+    db.transaction(
+      tx => {
+        tx.executeSql(
+          "insert into shopping_list (product, amount) values (?, ?)",
+          [this.state.product,
+          this.state.amount]
         );
-    })
-  }
+      },
+      null,
+      this.updateList
+    );
+  };
+
+  updateList = () => {
+    db.transaction(tx => {
+      tx.executeSql("select * from shopping_list", [], (_, { rows }) =>
+        this.setState({ shoppingList: rows._array })
+      );
+    });
+  };
+
+  deleteItem = id => {
+    db.transaction(
+      tx => {
+        tx.executeSql(`delete from shopping_list where id = ?;`, [id]);
+      },
+      null,
+      this.updateList
+    );
+  };
 
   render() {
     return (
-      <View style={styles.mainContainer}>
-        <Text style={{ fontSize: 17 }}>Courses</Text>
-        <Text style={{ marginTop: 10, fontWeight: "bold" }}>
-          {this.state.output}
-        </Text>
+      <View style={styles.mainContainer12}>
         <View>
           <TextInput
             style={styles.inputStyle}
-            placeholder="Title"
-            onChangeText={title => this.setState({ title })}
-            value={this.state.title}
+            placeholder="Item"
+            onChangeText={product => this.setState({ product })}
+            value={this.state.product}
           />
           <TextInput
             style={styles.inputStyle}
-            placeholder="Credits"
-            onChangeText={credits => this.setState({ credits })}
-            value={this.state.credits}
+            placeholder="Amount"
+            onChangeText={amount => this.setState({ amount })}
+            value={this.state.amount}
           />
         </View>
         <View style={styles.buttonContainer}>
-          <Button onPress={this.saveItem} title="Save" />
+          <Button onPress={this.saveItem} title="Add" />
         </View>
+        <Text style={{ fontSize: 17 }}>Shopping List</Text>
         <FlatList
-        style={{marginLeft: '5%'}}
-        keyExtractor={item => item.id}
-        renderItem={({item}) =>
-            <View style={}></View>
-        </FlatList>
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.historyContainer}>
+              <Text>
+                {item.product}, {item.amount}{" "}
+              </Text>
+              <Text
+                style={{color: "#0000ff" }}
+                onPress={() => this.deleteItem(item.id)}
+              >
+                bought
+              </Text>
+            </View>
+          )}
+          data={this.state.shoppingList}
+        />
       </View>
     );
   }
