@@ -1,6 +1,9 @@
 import { Camera, Permissions } from "expo";
 import React, { Component } from "react";
-import { View, Text,  Button, Image } from "react-native";
+import { View, Text, FlatList, TextInput, Button } from "react-native";
+import styles from "./Styles/styles";
+
+const db = SQLite.openDatabase("coursedb.db");
 
 export default class App extends Component {
   constructor(props) {
@@ -10,7 +13,7 @@ export default class App extends Component {
       photoName: "",
       photoBase64: ""
     };
-    this.camera= React.createRef();
+    this.Camera= React.createRef();
   }
 
   componentDidMount() {
@@ -18,7 +21,7 @@ export default class App extends Component {
   }
 
   askCameraPermission = async () => {
-    let { status } = await Permissions.askAsync(Permissions.CAMERA);
+    let { status } = await Permissions.askAsync(Permissions,CAMERA);
     this.setState({ hasCameraPermission: status === 'granted'});
   }
 
@@ -26,7 +29,7 @@ export default class App extends Component {
     if (this.camera) {
       let photo = await
       this.camera.current.takePictureAsync({base64:true});
-      this.setState({photoName: photo.uri, photoBase64: photo.base64})
+      this.setState({pjotoName: photo.uri, photBase64: photo.base64})
     }
   }
 
@@ -44,8 +47,8 @@ export default class App extends Component {
             <Button title="Take photo" onPress={this.snap} />
           </View>
           <View style={{flex: 1}}>
-            <Image style={{flex: 4}} source= {{uri: this.state.photoName}} />
-            <Image style={{flex: 4}} source={{uri: `data:image/gif;base64,${this.state.photoBase64}`}}/>
+            <Image style={{flex: 1}} source= {{uri: this.state.photoName}} />
+            <Image style={{flex: 1}} source={{uri: `data:image/gif;base64,${this.state.photoBase46}`}}/>
           </View>
         </View>
       );
